@@ -1,0 +1,75 @@
+:root .content-wrapper {
+  @include flex-center;
+  background-color: $gray-light;
+  min-height: 100vh !important;
+
+  .content {
+    margin-top: $header-height;
+    max-width: 1360px;
+    padding: 20px;
+    width: 100%;
+
+    &__row {
+      visibility: visible;
+
+      &--hidden {
+        visibility: hidden;
+      }
+
+      .dq-box {
+        border-radius: 5px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        overflow: hidden;
+
+        .dq-box-header {
+          border-bottom: 3px solid $green-light;
+          color: $gray-dark;
+          transition: background $hover-effect;
+
+          .dq-box-title {
+            color: inherit !important;
+            font-size: 1.2em;
+          }
+
+          .collapser {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 16px;
+            outline: none;
+
+          }
+
+          &:hover {
+            background: $green-light;
+            color: #fff;
+          }
+        }
+      }
+
+      #foldable_tables {
+
+        .dq-box {
+          box-shadow: 0 1px 5px rgba(0,0,0,0.3);
+
+          .dq-box-header {
+            border-bottom: none;
+            border-left: 15px solid #000;
+          }
+        }     
+
+        @each $number, $color in $colors {
+          .dq-box-wrapper:nth-child(#{$number}) {
+            .dq-box .dq-box-header {
+              border-color: $color;
+
+              &:hover {
+                background: $color;          
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

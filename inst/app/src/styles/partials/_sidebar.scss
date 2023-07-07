@@ -1,0 +1,118 @@
+:root .main-sidebar {
+  background-color: $blue-dark;
+  display: flex;
+  height: 100%;
+  padding-top: $header-height;
+  position: fixed;
+
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: space-between;
+    padding: 20px;
+    padding-top: 40px;
+    width: 100%;
+
+    &__button {
+      @include button;
+      background: $blue-light;
+      margin: 0 !important;
+      margin-bottom: $sidebar-gap !important;
+      transition: background-color $hover-effect;
+      width: 100%;
+
+      &:hover {
+        background-color: $green-light;
+      }
+
+      i {
+        margin-right: 5px;
+      }
+    }
+
+    // inputs with labels without custom css class
+    & > .form-group {
+      padding: 0;
+      margin-bottom: $sidebar-gap;
+
+      .control-label {
+        color: #fff;
+        font-size: 1em;
+        margin-bottom: 10px;
+      }
+
+      .selectize-control {
+        margin-bottom: 0;
+
+        .selectize-input {
+          @include button;
+          border: 2px solid $blue-light;
+          transition: background-color $hover-effect, border-color $hover-effect;
+
+          &::after {
+            border-top-color: #fff;
+          }
+
+          &:hover {
+            background-color: $green-light;
+            border-color: $green-light;
+          }
+
+          &.dropdown-active {
+            background-color: $green-light;
+            border-color: $green-light;
+  
+            &::after {
+              border-bottom-color: #fff !important;
+            }
+          }
+
+          input {
+            color: #fff;
+          }
+        }
+
+        .selectize-dropdown {
+          border: none;
+          border-radius: 6px;
+          overflow: hidden;
+
+          &-content {
+            padding: 0;
+
+            .option.active {
+              background-color: $blue-light;
+              color: #fff;
+            }
+          }
+        }
+      }
+
+      #Compare_Selector_inputid + .selectize-control {
+
+        .selectize-input {
+
+          .item {
+            background-color: $blue-light;
+            border-radius: 5px;
+            color: #fff;
+            padding: 4px 12px;
+
+            &.active {
+              background-color: $blue-dark;
+            }
+          }
+        }
+      }
+    }
+
+    &__footer {
+      align-items: flex-end;
+      display: flex;
+      flex-grow: 1;
+      font-size: 0.6em;
+    }
+  }
+}
+

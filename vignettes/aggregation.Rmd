@@ -1,0 +1,252 @@
+---
+title: Aggregation
+---
+
+# Demo instructions
+
+- create application data, e.g. using `setup.Rmd`
+
+```{r setup, echo=FALSE, message=FALSE}
+
+## library(dplyr)
+devtools::load_all()
+
+root_dir <- "../stri_apec/Services Trade Restrictiveness Index Simulator/src"
+
+## library(shiny)
+## library(dplyr)
+## library(tidyr)
+## library(shinydashboard)
+## library(echarts4r)
+## library(DT)
+## library(shinyjs)
+## library(dqshiny)
+## library(yaml)
+## library(sass)
+
+## source(file = file.path(root_dir, "./lib/policy_simulator_wrappers.R"))
+app_data <- import_simulator_data(path = file.path(root_dir, "data"))
+
+```
+
+```{r all-backend-tables, echo=FALSE, message=FALSE, cache=TRUE}
+
+## 2021-03-17
+## copied from ./inst/app/src/lib/all_backend_tables.R
+## lines 4-27
+
+Master_Table <- readRDS(file.path(root_dir, "./data/Master_Table.rds"))
+levels_meta <- get_levels_meta(app_data$Hierarchy)
+ind_to_label <- function(data, indicators) {
+  data[, indicators] <- data[, gsub("C", "L", indicators)]
+  data
+}
+
+## Creating  Tables for developing other tables with no NULL or NA.
+scores_table <- Master_Table[!(is.na(Master_Table[[levels_meta$foldable]]) | Master_Table[[levels_meta$foldable]] == ""), ] %>%
+  dplyr::ungroup() %>%
+  dplyr::arrange(dplyr::across(!!get_level_col(levels_meta$all[-1], "O")))
+
+## Unique Sequence Indicators
+un_sq <- unique(scores_table[[get_level_col(levels_meta$foldable)]])
+
+## Unique Sequence countryname names
+countries <- unique(scores_table$countryname)
+
+## For Indicator Vs countryname Graph and countryname comparision Graph
+Aggregation_Table <- scores_table %>%
+  dplyr::select(c(levels_meta$all, get_level_col(levels_meta$all[-1], "W"), Score, widget_id)) %>%
+  dplyr::filter(!is.na(Score))
+## saveRDS(Aggregation_Table, file = "../example/Aggregation_Table.rds")
+
+aggregated_scores <- aggregate_scores(Aggregation_Table, levels_meta)
+## aggregated_scores <- aggregate_scores(Aggregation_Table, levels_meta, score_column = "Score")
+
+```
+
+### Aggregated Scores
+
+```{r print-aggregated-scores, echo=FALSE}
+
+str(aggregated_scores)
+
+## lapply(aggregated_scores, function(x) head(x) %>% knitr::kable())
+
+## aggregated_scores %>%
+##     head() %>%
+##     knitr::kable()
+
+## lapply(aggregated_scores, function(x) summary(x$Score))
+
+## $CH3
+## Min.  1st Qu.   Median     Mean  3rd Qu.     Max.
+## 0.000000 0.006825 0.010058 0.009674 0.013189 0.058163
+## $CH2
+## Min.   1st Qu.    Median      Mean   3rd Qu.      Max.
+## 0.000e+00 6.192e-05 1.210e-04 1.267e-04 1.892e-04 1.307e-03
+## $CH1
+## Min.   1st Qu.    Median      Mean   3rd Qu.      Max.
+## 0.0001286 0.0005839 0.0014722 0.0021748 0.0034663 0.0116988
+## $CH0
+## Min.  1st Qu.   Median     Mean  3rd Qu.     Max.
+## 0.005753 0.009769 0.011362 0.010874 0.012041 0.015877
+
+## dim_df <-
+##     sapply(aggregated_scores, dim) %>%
+##     t() %>%
+##     as.data.frame() %>%
+##     magrittr::set_colnames(c("rows", "cols"))
+
+## dim_df$rows # CH3:37458 CH2:33732 CH1:1965 CH0:393
+## dim_df$cols # CH3:   11 CH2:    8 CH1:   6 CH0:  4
+
+```
+
+```{r setup-weighted-aggregation, echo=FALSE, message=FALSE}
+
+levels <- levels_meta$all
+aggregation_levels <- purrr::map((length(levels) - 1):1,~levels[1:(1 + .)])
+## level_score(levels = aggregation_levels[[1]], aggregation_data = Aggregation_Table, score_column = "Score")
+score_column <- "Score"
+aggregation_data <- Aggregation_Table
+
+```
+
+### Weighting at last level (CH3)
+
+```{r non-weighted-aggregation, echo=FALSE, message=FALSE}
+
+## updates Score as Score * WH3
+aggregation_data %>%
+    dplyr::group_by_at(vars(one_of(aggregation_levels[[1]]))) %>%
+    dplyr::mutate(!!sym(score_column) := !!sym(score_column) * !!sym(get_level_col(dplyr::last(levels), "W"))) %>%
+    dplyr::ungroup() %>%
+    head() %>%
+    knitr::kable()
+
+```
+
+### Aggregation after weighting (CH0-CH2)
+
+```{r weighted-aggregation, echo=FALSE, message=FALSE}
+
+levels <- aggregation_levels[[2]]
+levels <- c("countryname", "CH2")
+
+dic_data_2 <- data.frame(
+    countryname = rep("AUS", 8),
+    CH2 = c("a", "a", "b", "b", "b", "c", "c", "c"),
+    WH2 = c(1, 1, 1, 1, 1, 1, 0.5, 0.5),
+    Score = c(1, 2, 1, NaN, 3, 1, 2, NaN)
+)
+
+## updates Score as Score * WH2 (same as above)
+aggregation_data_1 <-
+    ## aggregation_data %>%
+    dic_data_2 %>%
+    dplyr::group_by_at(vars(one_of(levels))) %>%
+    dplyr::mutate(
+               !!sym(score_column) := !!sym(score_column) * !!sym(get_level_col(dplyr::last(levels), "W")),
+               XH2 = WH2 * ifelse(is.nan(Score), 0, 1)
+           )
+
+## count elements per group (countryname | CH0 | CH1 | CH2)
+group_n <- aggregation_data_1 %>% dplyr::summarise(n = dplyr::n()) %>% dplyr::pull(n)
+
+## calculate sum of Score column and WH0, WH1 and WH2 columns (remove "countryname")
+aggregation_data_2 <-
+    aggregation_data_1 %>%
+    dplyr::summarise_at(vars(score_column, get_level_col(levels[-1], "W"), get_level_col(levels[-1], "X")), ~ sum(., na.rm = TRUE))
+
+## add group size
+aggregation_data_2$group_n <- group_n
+
+## divide columns WH0, WH1 and WH2 by group size
+aggregation_data_2 %>%
+    ## dplyr::mutate_at(vars(get_level_col(levels[-1], "W")), ~ . / group_n) %>%
+    dplyr::mutate(weightedaverage := !!sym(score_column) / !!sym(get_level_col(dplyr::last(levels), "X"))) %>%
+    ## dplyr::select(- group_n) %>%
+    dplyr::ungroup() %>%
+    dplyr::rename(groups_CH2 = CH2, correctedweights_XH2 = XH2) %>%
+    head() %>%
+    knitr::kable()
+
+## A tibble: 3 x 6
+## countryname CH2   Score   WH2   XH2 group_n
+## <chr>       <chr> <dbl> <dbl> <dbl>   <int>
+## 1 AUS         a      1.5      2   2         2
+## 2 AUS         b      2        3   2         3
+## 3 AUS         c      1.33     2   1.5       3
+
+## CH2 -> groups
+## XH2 -> correctedweights
+
+````
+
+
+```{r colab, echo=FALSE, message=FALSE}
+
+## import pandas as pd
+## import numpy as np
+
+## dic_data = {
+##     'weights': [1,1,1,1,1,1,0.5,0.5],
+##     'values': [1,2,1,np.NaN,3, 1, 2,np.NaN],
+##     'groups': ['a', 'a','b','b','b','c','c','c']
+## }
+## df = pd.DataFrame.from_dict(dic_data)
+
+dic_data <- data.frame(
+    weights = c(1, 1, 1, 1, 1, 1, 0.5, 0.5),
+    values = c(1, 2, 1, NaN, 3, 1, 2, NaN),
+    groups = c("a", "a", "b", "b", "b", "c", "c", "c")
+)
+
+## indic = lambda x: 0 if np.isnan(x) else 1
+
+#' @examples
+#' indic(c(NaN, 2))
+indic <- function(x) ifelse(is.nan(x), 0, 1)
+
+## df['weightedvalues'] = df['weights'] * df['values']
+## df['correctedweights'] = df['weights'] * df['values'].apply(indic)
+## ## df['cleanedvalues'] = df['values'].apply(indic)
+## ## df['correctedweights'] = df['weights'] * df['cleanedvalues']
+## print(df)
+
+df <-
+    dic_data %>%
+    dplyr::mutate(weightedvalues = weights * values,
+           correctedweights = weights * indic(values))
+
+knitr::kable(df)
+
+## df_means = df.groupby('groups').sum()
+## df_means['weightedaverage'] = df_means['weightedvalues'] / df_means['correctedweights']
+## print('\n in the table below weigthedvalues correspond to the STRI agg method, weigtedaverage correspond to the ECO-PMR \n')
+## print(df_means)
+
+## if value existis, correctedweights is equal to weights, otherwise zero
+df_means <-
+    df %>%
+    dplyr::group_by(groups) %>%
+    dplyr::summarize_all(function(x) sum(x, na.rm = TRUE)) %>%
+    dplyr::mutate(weightedaverage = weightedvalues / correctedweights)
+
+##   A tibble: 3 x 6
+##   groups weights values weightedvalues correctedweights weightedaverage
+## * <chr>    <dbl>  <dbl>          <dbl>            <dbl>           <dbl>
+## 1 a            2      3              3              2              1.5
+## 2 b            3      4              4              2              2
+## 3 c            2      3              2              1.5            1.33
+
+```
+
+In the table below **weigthedvalues** correspond to the STRI agg method,
+**weigtedaverage** correspond to the ECO-PMR
+
+```{r print-df-means, echo=FALSE}
+
+knitr::kable(df_means)
+
+```

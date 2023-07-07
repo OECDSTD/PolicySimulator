@@ -1,0 +1,17 @@
+.Rproj.user/*
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user
+inst/app/tmp/*
+inst/app/src/data/*
+inst/app/src/lib/*_dynamic.R
+inst/app/src/www/logo.*
+*.Rproj
+inst/app/R-lib/*
+inst/app/rsconnect/
+inst/doc
+stri_apec/*
+*.RData
+*.rdb
+*.rdx

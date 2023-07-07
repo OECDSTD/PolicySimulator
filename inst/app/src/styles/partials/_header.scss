@@ -1,0 +1,89 @@
+:root .main-header {
+  left: 0;
+  position: fixed;
+  top: 0;
+  width: 100%;
+
+  .logo {
+    @include flex-center;
+    height: $header-height;
+    background-color: $blue-light;
+    transition: background-color $hover-effect;
+  
+    &__link {
+      @include flex-center;
+      padding: 30px;
+      transition: padding $hover-effect;
+      width: 100%;
+
+      &:hover {
+        padding: 20px;
+      }
+    }
+  
+    &__img {
+      width: 100%;
+    }
+
+    &:hover {
+      background-color: $blue-dark;
+    }
+  }
+
+  .navbar {
+    @include nav-format;
+    background-color: $blue-light;
+
+    .navbar-custom-menu {
+      width: 100%;
+  
+      .nav {
+        @include nav-format;
+        width: 100%;
+
+        &__title {
+          flex-grow: 1;
+          margin-left: 20px;
+        }
+
+        &__heading {
+          color: #fff;
+          font-size: 1.5em;
+          font-weight: normal;
+          margin: 0;
+        }
+
+        &__link {
+          color: #fff;
+          margin-right: 20px;
+
+          button {
+            @include button;
+            color: inherit;
+            font-size: 1.1em;
+            transition: color $hover-effect;
+          }
+
+          &:hover {
+            color: $blue-dark;
+          }
+        }
+      }
+    }
+  
+    .sidebar-toggle {
+      @include flex-center;
+      background: none;
+      font-size: 24px;
+      height: $header-height;
+      padding: 0;
+      transition: background-color $hover-effect;
+      width: $header-height;
+
+      &:hover {
+        background-color: $blue-dark;
+      }
+    }
+  }
+}
+

@@ -1,0 +1,65 @@
+---
+title: Object Documentation
+---
+
+
+```{r, eval=TRUE}
+
+## install.packages("rex")
+## rex::rex("a(b")
+
+#' @examples
+#' ns <- "dqshiny"
+#' ns <- "dplyr"
+#' ns <- "vctrs"
+#' txt <- ns_exports_grep(ns, detail = FALSE)
+#' cat(txt, sep = "\n")
+
+ns_exports_grep <- function(ns,
+                            fileType="\\*.R",
+                            detail=FALSE,
+                            statement=FALSE) {
+
+  export_c <- getNamespaceExports(ns)
+  export_c_rex <- unname(sapply(export_c, function(x) rex::rex(x))) # escape regular expression characters
+  export_c_mod <- paste0(export_c_rex, "\\(")
+  export_str <- paste(export_c_mod, collapse = "|")
+
+  flags <- ifelse(detail, "-rE", "-rlE")
+  command <- paste("grep", flags, shQuote(export_str, "sh"),
+                      "--include", fileType)
+  if (statement) return(command)
+
+  stdout <- system(command = command, intern = TRUE)
+  return(stdout)
+
+}
+
+```
+
+
+```{r, eval=TRUE, warning=FALSE}
+
+## ns_c <- c("dqshiny", "dplyr")
+ns_c <-
+  packrat:::recursivePackageDependencies(pkgs = "PolicySimulator",
+                                         ignores = c(),
+                                         lib.loc = .libPaths()[1])
+
+files_ls <- lapply(ns_c, ns_exports_grep)
+names(files_ls) <- ns_c
+## lapply(files_ls[c(1:2)], head)
+keep <- lapply(files_ls, length) > 0
+## lapply(files_ls[keep], head)
+files_ls[keep]
+
+## detail_ls <- lapply(ns_c, ns_exports_grep, detail = TRUE)
+## names(detail_ls) <- ns_c
+## lapply(detail_ls, head)
+
+## statement_ls <- lapply(ns_c, ns_exports_grep, statement = TRUE)
+## names(statement_ls) <- ns_c
+## cat(statement_ls[[1]])
+## statement_ls
+
+```

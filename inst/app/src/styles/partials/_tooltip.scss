@@ -1,0 +1,15 @@
+.tooltip__text {
+  align-items: center;
+  color: $gray-dark;
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 5px;
+}
+
+.tooltip__text--value {
+  color: $green-light;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-left: 10px;
+}

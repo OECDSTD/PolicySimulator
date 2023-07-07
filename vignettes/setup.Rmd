@@ -1,0 +1,77 @@
+---
+title: Setup
+---
+
+```{r}
+
+## setwd("c:/src/R/oecd/pmr-oced-datamatics1/vignettes")
+
+## message 2021-03-22 Maria Grycuk <maria@appsilon.com>
+## install version 0.1.3 of data.validator package
+## devtools::install_github("Appsilon/data.validator", ref = "dc9dfd3441f9ab2ff9f00105007d045edf8d848b")
+## devtools::install_github("daqana/dqshiny")
+
+## install.packages("echarts4r") # used in shiny app but not declared as dependency
+## install.packages(c('shinydashboard','shinyjs','dqshiny','varhandle'))
+## install.packages(c('dqshiny'))
+## install.packages('data.validator')
+
+devtools::load_all() # reloads PolicySimulator functions
+
+## source custom user function
+source("../inst/app/src/lib/custom_funs.R")
+
+## ## TAD STRI
+## excel_template_path <- "../TAD STRI/Matrix_Simulator_Template_APECstri_allcountries.xlsx"
+## excel_template_path <- "../TAD STRI/Matrix_Simulator_Template_APEC_scaleback.xlsx"
+## target_app_path <- "../stri_apec"
+
+## ECO PMR
+## excel_template_path <- "../ECO PMR/Matrix_Simulator-preparingForRemodel_IW.xlsx"
+## excel_template_path <- "../ECO PMR/Matrix_Simulator-remodel-partdata-partmeasures_IW3.xlsx"
+## target_app_path <- "../eco_pmr"
+
+## DEBUG
+## excel_template_path <- "../DEBUG/Matrix_Simulator-demo-WeightedSum_KL_bug.xlsx"
+excel_template_path <- "../DEBUG/Matrix_Simulator-template-WeightedSum.xlsx"
+target_app_path <- "../debug_target"
+
+if(!dir.exists(target_app_path)) dir.create(target_app_path)
+
+generate_simulator(
+    excel_template_path,
+    target_app_path
+)
+
+## creates or replaces file:
+##  ./stri_apec/Services Trade Restrictiveness Index Simulator/src/data/Master_Table.rds
+
+```
+
+```{r generator, eval=FALSE}
+
+options(scipen = 999)
+
+## Data import and initial values conversion
+template <- import_template_data(excel_template_path)
+template$Hierarchy <- convert_to_upper(template$Hierarchy)
+template$Data <- convert_empty_to_na(template$Data)
+template$Indicator <- convert_empty_to_na(template$Indicator) %>%
+    convert_to_character(match_cols(., "Cond|Score"))
+
+## Data validation
+message("Validating provided template...")
+validator <- data.validator::create_validator()
+
+## debug ./R/validation.R
+data <- validate_hierarchy(
+    hierarchy_data = template$Hierarchy
+   ,
+    validator
+   ,
+    path = target_app_path
+)
+
+data %>% get_violated_data(validator, name = "Hierarchy", path = path)
+
+```

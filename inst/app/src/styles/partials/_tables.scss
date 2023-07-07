@@ -1,0 +1,116 @@
+.dq-box-body {
+
+  & > div.row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+
+    & > .form-group {
+      display: flex;
+      margin: 0;
+
+      & > label {
+        display: none;
+      }
+
+      #search2 {
+        @include search;
+        background-color: #fff;
+        max-width: 300px;
+        margin: 0 28px 0 20px;
+        width: 100%;
+      }
+    }
+  }
+}
+
+.table {
+  display: flex;
+
+  &__left {
+    flex-grow: 1;
+  }
+
+  &__right {
+    margin-left: -2px;
+    padding: 0;
+    padding-top: 50px;
+  }
+
+  .cell-border {
+    border: none !important;
+  }
+
+  .dataTables_filter {
+    color: $gray-dark;
+    height: 50px;
+
+    label {
+      font-weight: normal;
+
+      input {
+        @include search;
+  
+        &:focus {
+          border: 2px solid $green-light !important;
+        }
+      }
+    }
+  }
+
+  .shiny-input-container:not(.shiny-input-container-inline) {
+    width: auto;
+  }
+
+  th {
+    background-color: $gray-light;
+    border-bottom: 2px solid #fff !important;
+    color: $gray-dark;
+  }
+
+  td {
+    border-color: #fff !important;
+    height: 50px !important;
+
+    & > div:not(.modal) {
+      display: flex;
+
+      & > .form-group {
+        margin: 0;
+        margin-right: 10px;
+
+        .form-control {
+          @include search;
+          height: 20px;
+          width: 60px;
+        }
+
+        button {
+          @include button;
+        }
+      }
+    }
+
+    & > .modal {
+      width: 100%;
+    }
+  }
+}
+
+#foldable_tables .collapse {
+  display: block !important;
+  visibility: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+}
+
+#foldable_tables .collapse.in {
+  display: block !important;
+  visibility: visible !important;
+  margin: auto !important;
+  padding: 10px !important;
+  max-height: none !important;
+  overflow: auto !important;
+}

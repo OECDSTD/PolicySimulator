@@ -1,0 +1,142 @@
+.modal {
+  @include flex-center;
+  background-color: $modal-background;
+
+  &-dialog {
+    margin: 0;
+  }
+
+  &-content {
+    border-radius: 6px;
+    overflow: hidden;
+
+  }
+
+  &-header {
+    background-color: $green-light;
+    color: #fff;
+    font-weight: bold;
+  }
+
+  &-title {
+    font-weight: bold;
+  }
+
+  &-body {
+    color: $gray-dark;
+    padding: 20px 50px;
+
+    a {
+      color: $blue-light;
+      font-weight: bold;
+      transition: color $hover-effect;
+
+      &:hover {
+        color: $green-light;
+      }
+    }
+  }
+
+  &-footer {
+
+    button {
+      @include button;
+      background: $blue-light;
+      padding: 10px 20px;
+      transition: background-color $hover-effect;
+
+      &:hover {
+        background-color: $green-light;
+        color: #fff;
+      }
+    }
+  }
+}
+
+.table {
+
+  /* The Modal (background) */
+  .modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 2000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba($color: $blue-dark, $alpha: 0.6);
+  }
+
+  /* Modal Content/Box */
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    max-width: 1200px;
+    position: relative;
+    width: 80%; /* Could be more or less, depending on screen size */
+  }
+
+  /* The Close Button */
+  .close {
+    color: #fff;
+    cursor: pointer;
+    font-size: 36px;
+    font-weight: bold;
+    opacity: 1;
+    position: absolute;
+    right: 20px;
+    text-shadow: none;
+    top: 25px;
+    line-height: 6px;
+    text-decoration: none;
+  }
+
+  .close:hover, .close:focus {
+    color: $blue-light;
+  }
+
+  .modal .measure {
+    background: $green-light;
+    color: #fff;
+    font-size: 1.1em;
+    font-weight: bold;
+    padding: 20px 40px;
+  }
+
+  .modal .title {
+    font-weight: bold;
+    margin: 0;
+    padding-bottom: 10px;
+  }
+
+  .modal-link {
+    color: $gray;
+    cursor: pointer;
+    padding-left: 10px;
+
+    &:hover {
+      color: $blue-light;
+    }
+  }
+
+  .modal .section {
+    color: $gray-dark;
+    padding: 20px 40px;
+
+    ul {
+      list-style-position: inside;
+    }
+
+    a {
+      color: $blue-light;
+      cursor: pointer;
+      padding-left: 10px;
+
+      &:hover {
+        color: $green-light;
+      }
+    }
+  }
+}

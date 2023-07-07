@@ -1,0 +1,42 @@
+// Colors
+$blue-light: #0f629a;
+//$blue-dark-website: #020f3b;
+$blue-dark: #154361;
+$sky-light: #9bc1d5;
+$sky-dark: #384a50;
+$green-light: #91c100;
+$green-dark: #597906;
+$red-light: #e25d13;
+$red-dark: #a5470e;
+$gray-light: #e0e6eb;
+$gray: rgb(126, 126, 126);
+$gray-dark: #222;
+
+$color-1: #383a61;
+$color-2: #e56000;
+$color-3: #717274;
+$color-4: #6c45b1;
+$color-5: #98c10f;
+$color-6: #383a61;
+$color-7: #e56000;
+$color-8: #717274;
+$color-9: #6c45b1;
+$color-10: #98c10f;
+$color-11: #383a61;
+$color-12: #e56000;
+$color-13: #717274;
+$color-14: #6c45b1;
+$color-15: #98c10f;
+
+
+$colors: ("1": $color-1, "2": $color-2, "3": $color-3, "4": $color-4, "5": $color-5,
+"6": $color-6, "7": $color-7, "8": $color-8, "9": $color-9, "10": $color-10, 
+"11": $color-11, "12": $color-12, "13": $color-13, "14": $color-14, "15": $color-15);
+
+$modal-background: rgba($color: $blue-dark, $alpha: 0.6);
+
+// Layout
+$header-height: 60px;
+$sidebar-gap: 20px;
+
+$hover-effect: 0.2s;

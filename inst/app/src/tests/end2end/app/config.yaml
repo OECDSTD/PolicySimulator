@@ -1,0 +1,4 @@
+id: app
+dir: tests/end2end/app
+test_env: tests/end2end/app/test_env.R
+settings: tests/end2end/app/run_settings.json

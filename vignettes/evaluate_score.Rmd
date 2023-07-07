@@ -1,0 +1,173 @@
+---
+title: Evaluate Score
+---
+
+# Tutorial
+
+## Basic evaluation
+
+- modify `./TAD STRI/Matrix_Simulator_Template_APEC_scaleback.xlsx`: copy
+formula from cell AF1140 to cells AH1140 and AJ1140 in sheet `Indicator`
+(LineID:`90808`, CH1:`CR.1`, CH2:`1_20_6`) )
+- set `cache` to `FALSE` in code block `generate-data` (copied from
+  `generate_simulator` function defined in `./R/generator.R`)
+- re-generate this document
+- modify numans value for countryname:`Austria`, LineID:`90401`,
+  QuestionCode:`1_25_1`, e.g. from 0 -> 0.4
+- re-generate this document
+- observe change in result: `Score` for countryname:`Austria` is now `0.4`
+
+
+## User-supplied function
+
+- open `./TAD STRI/Matrix_Simulator_Template_APEC_scaleback.xlsx`, sheet `Indicator`
+- insert following text in cell AJ1140 (column: `Score2`, LineID:`90808`,
+CH1:`CR.1`, CH2:`1_20_6`)
+- start application
+- select "Courier services", "Australia"
+- expand 1st table "Restrictions on foreign entry", scroll down to `1_20_6 Cross-border data flows: transfer of data is prohibited`, observe EditedScore = 2
+- expand last table "Regulatory transparency", modify value `5_6_1 Number of mandatory procedures to register a company`: reducing from 3 to 1 will reduce the sum (7.2 - 2 = 5.2) below 6 and decrease the EditedScore of `1_20_6` from 2 to 1; increasing from 3 to 7 will increase the sum (7.2 + 4 = 11.2) above the next step (11) and result in an EditedScore of `1_20_6` of 3.
+
+```
+user_fun(breaks=c(4,6,11,16,21,26),scores=c(0:6),num94106,num94200,num94300,num94400)
+```
+
+- the custom user functions must be loaded both before generating the
+  application data and at application runtime:
+  `source("../inst/app/src/lib/custom_funs.R")`
+- generate the application (see `setup.Rmd`) and start the application (e.g.
+  using `scripts/run-app.sh`)
+- within the application, check the value in STRI Sector "Courier services",
+  "Australia", "Restrictions on foreign entry" (expand the table), the score of
+  question `1_20_6` "Cross-border data flows: transfer of data is prohibited"
+  should be 2 with answer "No" and 1 with answer "Yes"
+- after re-generating and running the application, modify the custorm user
+  function and return the value "5": `return(5)`. Now restart the application
+- the initial score for answer "No" is still 2, when changing the answer to
+  "Yes", the score still becomes 1. When changing back to "No", the answer is
+  recalculated and the score 5 is returned.
+
+```{r}
+
+#' @examples
+#' nums <- c(422:465)
+#' breaks <- c(4, 6, 11, 16, 21, 26)
+#' scores <- c(0:6)
+#'
+#' obj <- e$numals_env[["CR"]][["Australia"]]
+#' ## members <- ls(obj)
+#' nums <- c(94106, 94200, 94300, 94400)
+#' members <- paste0("num", nums)
+#' sapply(members, function(x) obj[[x]]) %>% sum()
+#'
+#' attach(obj)
+#' user_fun(breaks, scores)
+#' user_fun(breaks=c(4, 6, 11, 16, 21, 26), scores=c(0:6))
+#' detach(obj)
+#' num94106 <- 1
+#' user_fun(breaks, scores, num94106, num94200, num94300, num94400)
+
+user_fun <- function(breaks, scores, ...) {
+    ## return -1 if any value is missing
+    ## if(any(num94106==-1, num94200==-1, num94300==-1, num94400==-1)) return(-1)
+    ## my_sum <- sum(num94106, num94200, num94300, num94400)
+    if (any(sapply(list(...), function(x) x==-1))) return(-1)
+    my_sum <- sum(...)
+
+    res <-
+        data.frame(lower = c(0, breaks),
+                   upper = c(breaks, Inf),
+                   score = scores,
+                   value = my_sum
+                   ) %>%
+        dplyr::mutate(between = ifelse(value > lower & value <= upper,
+                                       TRUE, FALSE)) %>%
+        dplyr::filter(between == TRUE) %>%
+        dplyr::pull(score)
+
+    return(res) # for testing, change to "return(5)"
+}
+
+```
+
+```{r setup, echo=FALSE, message=FALSE}
+
+## library(dplyr)
+devtools::load_all()
+
+excel_template_path <- "../TAD STRI/Matrix_Simulator_Template_APEC_scaleback.xlsx"
+target_app_path <- "../stri_apec"
+
+```
+
+```{r generate-data, echo=FALSE, message=FALSE, cache=FALSE}
+
+## Data import and initial values conversion
+template <- import_template_data(excel_template_path)
+template$Hierarchy <- convert_to_upper(template$Hierarchy)
+template$Data <- convert_empty_to_na(template$Data)
+template$Indicator <- convert_empty_to_na(template$Indicator) %>%
+    convert_to_character(match_cols(., "Cond|Score"))
+
+levels_meta <- get_levels_meta(template$Hierarchy)
+
+country_indicator_data <- dplyr::left_join(template$Data, template$Indicator, by = "LineID") %>%
+    dplyr::rename(`UI.Element` = `UI Element`) %>%
+    dplyr::filter(!is.na(LineID)) %>%
+    dplyr::mutate(LineID = paste0("num", trimws(LineID))) %>%
+    dplyr::mutate_at(vars(dplyr::starts_with("Cond")), ~numans_to_numline(., LineID)) %>%
+    dplyr::mutate_at(vars(dplyr::starts_with("Score")), ~numans_to_numline(., LineID))
+
+numals_env <- get_numals_vals(country_indicator_data, levels_meta)
+
+## country_indicator_data %>% dplyr::filter(LineID == "num90808") %>% dplyr::select(dplyr::starts_with("Score"))
+save(country_indicator_data, numals_env, levels_meta, file = "../example/compute_score_data.rda")
+
+```
+
+```{r}
+
+e <- rlang::env()
+load(file = "../example/compute_score_data.rda", envir = e)
+
+country_indicator_data <- e$country_indicator_data %>%
+    ## dplyr::filter(countryname == "Australia") %>%
+    dplyr::filter(CH1 == "CR.1" & CH2 %in% c("1_20_6")) %>%
+    dplyr::select(CH0, CH1, CH2, countryname, dplyr::starts_with("Cond"), dplyr::starts_with("Score"))
+
+res <- compute_score(country_indicator_data, e$numals_env, e$levels_meta)
+## (1-num90401)*0 + num90401*1
+## numans for LineID 90401
+## AUS: 0.233
+## AUT: 0 -> e.g. 0.4
+## BRA: 0.333333333
+## CAN: 0.233333333
+## CHE: 0.2
+## CHL: 0.333
+## CHN: 0.666666667
+
+res %>%
+    dplyr::select(CH0, CH1, CH2, countryname, Score) %>%
+    knitr::kable()
+
+```
+
+```{r, include=FALSE}
+
+#' e <- rlang::env()
+#' load(file = "../example/compute_score_data.rda", envir = e)
+#' str(e$country_indicator_data)
+#' e$country_indicator_data %>% dplyr::filter(OH2 == 1139) %>% dplyr::select(dplyr::starts_with("Score"))
+#' country_indicator_data <- e$country_indicator_data %>% dplyr::filter(countryname == "Australia") %>% dplyr::select(CH0, CH1, CH2, countryname, dplyr::starts_with("Cond"), dplyr::starts_with("Score"))
+#' ## country_indicator_data <- e$country_indicator_data %>% head() %>% dplyr::mutate(Score0 = ifelse(Score0 == "no", 0, Score0))
+#' str(country_indicator_data)
+#'
+#' numals_env <- e$numals_env
+#' levels_meta <- e$levels_meta
+#' res <- compute_score(country_indicator_data, numals_env, levels_meta)
+#' str(res)
+#' res %>% dplyr::filter(!Score %in% c(0,1)) %>% dplyr::pull(Score)
+#' write.csv(res, file = "../example/compute_score_res.csv", row.names = FALSE)
+#' numals_env[["CS"]][["Belgium"]]
+
+```

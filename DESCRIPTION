@@ -1,0 +1,34 @@
+Package: PolicySimulator
+Type: Package
+Title: Generates Policy Simulator
+Version: 0.3.1
+Author: OECD SDD/SDPS
+Maintainer: The package maintainer <arnaud.atoch@oecd.org>
+Description: This package allow generating a Shiny application based on an Excel template to run what-if simulations
+License: OECD
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
+Imports:
+    shiny,  
+    shinydashboard,
+    purrr,  
+    dplyr (>= 1.0.2),  
+    DT,
+    readxl,  
+    tidyr,
+    shinyjs,  
+    data.table,  
+    dqshiny,  
+    yaml,  
+    rio,  
+    glue,
+    R.utils,
+    varhandle,
+    data.validator (>= 0.1.3)
+Suggests:
+    rstudioapi,
+    testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

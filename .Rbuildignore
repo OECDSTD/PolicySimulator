@@ -1,0 +1,11 @@
+^renv$
+^renv\.lock$
+^.*\.Rproj$
+^\.Rproj\.user$
+styler.R
+^tests/*
+^inst/app/src/tests*
+^inst/app/src/data*
+^inst/app/R-lib*
+build.sh
+^doc$
